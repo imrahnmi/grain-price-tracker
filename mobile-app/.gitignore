@@ -1,24 +1,3 @@
-# Dependencies
-node_modules/
-
-# Environment variables
-.env
-.env.local
-.env.*.local
-
-# OS files
-.DS_Store
-.DS_Store?
-._*
-Thumbs.db
-
-# IDE
-.idea/
-.vscode/
-*.swp
-*.swo
-*~
-*.iml
 # Flutter
 mobile-app/ng_grains_mobile/.dart_tool/
 mobile-app/ng_grains_mobile/.packages
@@ -57,3 +36,55 @@ npm-debug.log*
 
 # Vercel
 .vercel
+# Flutter/Dart
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+.pub-cache/
+.pub/
+build/
+
+# Android
+android/.gradle/
+android/.idea/
+android/local.properties
+android/captures/
+android/gradlew
+android/gradlew.bat
+android/gradle/wrapper/gradle-wrapper.jar
+android/key.properties
+android/*.jks
+android/*.keystore
+android/app/google-services.json
+
+# iOS
+ios/Pods/
+ios/.symlinks/
+ios/Flutter/Flutter.framework
+ios/Flutter/Flutter.podspec
+ios/Runner/GoogleService-Info.plist
+
+# macOS
+macos/Pods/
+macos/.symlinks/
+macos/Flutter/ephemeral/
+
+# Windows
+windows/flutter/ephemeral/
+
+# Linux
+linux/flutter/ephemeral/
+
+# Web
+web/flutter_service_worker.js
+web/version.json
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
