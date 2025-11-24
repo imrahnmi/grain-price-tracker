@@ -1,6 +1,5 @@
 {
   "version": 2,
-  "name": "nigeria-grains-app",
   "builds": [
     {
       "src": "build/web/**",

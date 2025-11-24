@@ -21,6 +21,43 @@ export default function AdminDashboard() {
     loadData()
   }, [])
 
+  // Add this to your admin-dashboard/pages/index.js
+const [stats, setStats] = useState({ totalPrices: 0, todayEntries: 0, avgPrice: 0 });
+
+// Add stats loading function
+const loadStats = async () => {
+  const { count } = await supabase
+    .from('price_entries')
+    .select('*', { count: 'exact', head: true });
+  
+  const today = new Date().toISOString().split('T')[0];
+  const { count: todayCount } = await supabase
+    .from('price_entries')
+    .select('*', { count: 'exact', head: true })
+    .gte('created_at', today);
+
+  setStats({
+    totalPrices: count || 0,
+    todayEntries: todayCount || 0,
+    avgPrice: 0 // You can calculate this
+  });
+};
+
+// Add stats display component
+<div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px', marginBottom: '24px' }}>
+  <div style={{ background: 'white', padding: '20px', borderRadius: '8px', textAlign: 'center', border: '1px solid #e0e0e0' }}>
+    <h3 style={{ margin: '0', color: '#2E7D32' }}>{stats.totalPrices}</h3>
+    <p style={{ margin: '8px 0 0 0', color: '#666' }}>Total Price Entries</p>
+  </div>
+  <div style={{ background: 'white', padding: '20px', borderRadius: '8px', textAlign: 'center', border: '1px solid #e0e0e0' }}>
+    <h3 style={{ margin: '0', color: '#2E7D32' }}>{stats.todayEntries}</h3>
+    <p style={{ margin: '8px 0 0 0', color: '#666' }}>Today's Entries</p>
+  </div>
+  <div style={{ background: 'white', padding: '20px', borderRadius: '8px', textAlign: 'center', border: '1px solid #e0e0e0' }}>
+    <h3 style={{ margin: '0', color: '#2E7D32' }}>5</h3>
+    <p style={{ margin: '8px 0 0 0', color: '#666' }}>Active Markets</p>
+  </div>
+</div>
   const loadData = async () => {
     // Load markets
     const { data: marketsData } = await supabase
