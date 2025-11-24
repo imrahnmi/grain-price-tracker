@@ -1,0 +1,38 @@
+# Flutter
+mobile-app/ng_grains_mobile/.dart_tool/
+mobile-app/ng_grains_mobile/.packages
+mobile-app/ng_grains_mobile/.flutter-plugins
+mobile-app/ng_grains_mobile/.flutter-plugins-dependencies
+mobile-app/ng_grains_mobile/.metadata
+mobile-app/ng_grains_mobile/build/
+mobile-app/ng_grains_mobile/android/app/src/main/java/io/flutter/plugins/
+mobile-app/ng_grains_mobile/android/app/src/main/kotlin/io/flutter/plugins/
+mobile-app/ng_grains_mobile/ios/Flutter/.last_build_id
+mobile-app/ng_grains_mobile/ios/Runner/GeneratedPluginRegistrant.*
+
+# Node.js
+admin-dashboard/node_modules/
+admin-dashboard/.next/
+admin-dashboard/out/
+
+# Environment variables
+*.env
+*.env.local
+.env
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+
+# Vercel
+.vercel

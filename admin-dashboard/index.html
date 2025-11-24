@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nigeria Grains Admin</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Arial, sans-serif; background: #f5f5f5; }
+        .header { background: #2e7d32; color: white; padding: 1rem; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 2rem; }
+        .card { background: white; border-radius: 8px; padding: 1.5rem; margin-bottom: 1rem; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .form-group { margin-bottom: 1rem; }
+        label { display: block; margin-bottom: 0.5rem; font-weight: bold; }
+        select, input { width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px; }
+        button { background: #2e7d32; color: white; padding: 0.75rem 1.5rem; border: none; border-radius: 4px; cursor: pointer; }
+        button:hover { background: #1b5e20; }
+        .price-list { margin-top: 2rem; }
+        .price-item { padding: 1rem; border-bottom: 1px solid #eee; }
+        .price-item:last-child { border-bottom: none; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Nigeria Grains - Admin Dashboard</h1>
+    </div>
+    
+    <div class="container">
+        <div class="card">
+            <h2>Add Price Entry</h2>
+            <form id="priceForm">
+                <div class="form-group">
+                    <label for="market">Market</label>
+                    <select id="market" required>
+                        <option value="">Select Market</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="commodity">Commodity</label>
+                    <select id="commodity" required>
+                        <option value="">Select Commodity</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="price">Price (₦ per bag)</label>
+                    <input type="number" id="price" required placeholder="Enter price">
+                </div>
+                
+                <div class="form-group">
+                    <label for="quality">Quality Grade</label>
+                    <select id="quality">
+                        <option value="A">Grade A</option>
+                        <option value="B">Grade B</option>
+                        <option value="C">Grade C</option>
+                    </select>
+                </div>
+                
+                <button type="submit">Add Price Entry</button>
+            </form>
+        </div>
+        
+        <div class="card">
+            <h2>Recent Price Entries</h2>
+            <div id="priceList" class="price-list">
+                <!-- Price entries will be loaded here -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:5000/api';
+        
+        // Load markets and commodities
+        async function loadInitialData() {
+            try {
+                const [marketsRes, commoditiesRes] = await Promise.all([
+                    fetch(`${API_BASE}/markets`),
+                    fetch(`${API_BASE}/commodities`)
+                ]);
+                
+                const markets = await marketsRes.json();
+                const commodities = await commoditiesRes.json();
+                
+                // Populate dropdowns
+                const marketSelect = document.getElementById('market');
+                const commoditySelect = document.getElementById('commodity');
+                
+                markets.forEach(market => {
+                    const option = document.createElement('option');
+                    option.value = market.id;
+                    option.textContent = market.name;
+                    marketSelect.appendChild(option);
+                });
+                
+                commodities.forEach(commodity => {
+                    const option = document.createElement('option');
+                    option.value = commodity.id;
+                    option.textContent = commodity.name;
+                    commoditySelect.appendChild(option);
+                });
+                
+                loadRecentPrices();
+            } catch (error) {
+                console.error('Error loading data:', error);
+            }
+        }
+        
+        // Handle form submission
+        document.getElementById('priceForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const formData = {
+                market_id: parseInt(document.getElementById('market').value),
+                commodity_id: parseInt(document.getElementById('commodity').value),
+                price: parseFloat(document.getElementById('price').value),
+                quality_grade: document.getElementById('quality').value
+            };
+            
+            try {
+                const response = await fetch(`${API_BASE}/prices`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(formData)
+                });
+                
+                if (response.ok) {
+                    alert('Price added successfully!');
+                    document.getElementById('priceForm').reset();
+                    loadRecentPrices();
+                } else {
+                    alert('Error adding price');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error adding price');
+            }
+        });
+        
+        // Load recent prices
+        async function loadRecentPrices() {
+            try {
+                const response = await fetch(`${API_BASE}/prices/1`); // Load rice prices
+                const prices = await response.json();
+                
+                const priceList = document.getElementById('priceList');
+                priceList.innerHTML = '';
+                
+                prices.forEach(price => {
+                    const priceItem = document.createElement('div');
+                    priceItem.className = 'price-item';
+                    priceItem.innerHTML = `
+                        <strong>${price.market_name}</strong> - ${price.commodity_name}
+                        <br>Price: ₦${price.price} per bag
+                        <br>Quality: ${price.quality_grade}
+                        <br><small>${new Date(price.created_at).toLocaleString()}</small>
+                    `;
+                    priceList.appendChild(priceItem);
+                });
+            } catch (error) {
+                console.error('Error loading prices:', error);
+            }
+        }
+        
+        // Initialize
+        loadInitialData();
+    </script>
+</body>
+</html>
