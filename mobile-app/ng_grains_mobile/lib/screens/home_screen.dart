@@ -107,7 +107,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
 // ... rest of your _DashboardScreen code remains the same ...
 class _DashboardScreen extends StatefulWidget {
-  const _DashboardScreen({super.key});
+  const _DashboardScreen();
 
   @override
   __DashboardScreenState createState() => __DashboardScreenState();

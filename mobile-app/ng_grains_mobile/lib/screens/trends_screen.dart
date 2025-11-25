@@ -89,7 +89,7 @@ class _TrendsScreenState extends State<TrendsScreen> {
                 child: Column(
                   children: [
                     DropdownButtonFormField<int>(
-                      value: selectedCommodityId,
+                      initialValue: selectedCommodityId,
                       items: commodities.map((commodity) {
                         return DropdownMenuItem<int>(
                           value: commodity['id'],
@@ -104,7 +104,7 @@ class _TrendsScreenState extends State<TrendsScreen> {
                     ),
                     const SizedBox(height: 12),
                     DropdownButtonFormField<int>(
-                      value: selectedMarketId,
+                      initialValue: selectedMarketId,
                       items: markets.map((market) {
                         return DropdownMenuItem<int>(
                           value: market['id'],

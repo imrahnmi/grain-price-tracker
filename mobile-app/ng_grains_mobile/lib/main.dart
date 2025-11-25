@@ -1,7 +1,28 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'screens/home_screen.dart';
-// import 'screens/validator_login_screen.dart'; // Add this import
+
+// Auth screens
+import 'screens/auth/login_screen.dart';
+import 'screens/auth/signup_screen.dart';
+
+// User screens
+import 'screens/user/user_dashboard.dart';
+import 'screens/user/user_profile_screen.dart';
+
+// Main app screens (in root screens directory)
+import 'screens/prices_screen.dart';
+import 'screens/compare_screen.dart';
+import 'screens/markets_screen.dart';
+
+// AI screens
+import 'screens/ai/ai_insights_screen.dart';
+
+// Admin & Validator screens
+import 'screens/admin/admin_dashboard.dart';
+import 'screens/validator/validator_portal.dart';
+
+// Services
+import 'services/auth_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -34,17 +55,142 @@ class NigeriaGrainsApp extends StatelessWidget {
             fontWeight: FontWeight.w600,
           ),
         ),
-        cardTheme: CardThemeData(
-          elevation: 2,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-        ),
-        visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
-      home: const HomeScreen(),
+      home: const AuthWrapper(),
       debugShowCheckedModeBanner: false,
-      // Remove routes for now - we'll use MaterialPageRoute directly
+      routes: {
+        '/login': (context) => const LoginScreen(),
+        '/signup': (context) => const SignupScreen(),
+        '/home': (context) => const UserApp(),
+        '/admin': (context) => const AdminDashboard(),
+        '/validator': (context) => const ValidatorPortal(),
+      },
+    );
+  }
+}
+
+class AuthWrapper extends StatefulWidget {
+  const AuthWrapper({super.key});
+
+  @override
+  State<AuthWrapper> createState() => _AuthWrapperState();
+}
+
+class _AuthWrapperState extends State<AuthWrapper> {
+  @override
+  void initState() {
+    super.initState();
+    _checkAuthState();
+  }
+
+  void _checkAuthState() {
+    AuthService.authStateChanges.listen((AuthState data) {
+      if (mounted) {
+        setState(() {});
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+
+    if (!AuthService.isLoggedIn) {
+      return const LoginScreen();
+    }
+
+    return FutureBuilder<Map<String, dynamic>?>(
+      future: AuthService.getProfile(),
+      builder: (context, snapshot) {
+
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Scaffold(
+            body: Center(child: CircularProgressIndicator()),
+          );
+        }
+
+        if (snapshot.hasError) {
+          return Scaffold(
+            body: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text('Error loading profile: ${snapshot.error}'),
+                  ElevatedButton(
+                    onPressed: () => setState(() {}),
+                    child: const Text('Retry'),
+                  ),
+                ],
+              ),
+            ),
+          );
+        }
+
+        final profile = snapshot.data;
+        final userType = profile?['user_type'] ?? 'user';
+        
+
+        switch (userType) {
+          case 'admin':
+            return const AdminDashboard();
+          case 'validator':
+            return const ValidatorPortal();
+          default:
+            return const UserApp();
+        }
+      },
+    );
+  }
+}
+class UserApp extends StatefulWidget {
+  const UserApp({super.key});
+
+  @override
+  State<UserApp> createState() => _UserAppState();
+}
+
+class _UserAppState extends State<UserApp> {
+  int _currentIndex = 0;
+
+  final List<Widget> _userScreens = [
+    const UserDashboard(),
+    const PricesScreen(),
+    const CompareScreen(),
+    const MarketsScreen(),
+    const AIInsightsScreen(),
+    const UserProfileScreen(),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Grain Price Tracker'),
+        backgroundColor: Theme.of(context).primaryColor,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.notifications),
+            onPressed: () {},
+            tooltip: 'Notifications',
+          ),
+        ],
+      ),
+      body: _userScreens[_currentIndex],
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _currentIndex,
+        onTap: (index) => setState(() => _currentIndex = index),
+        type: BottomNavigationBarType.fixed,
+        selectedItemColor: Theme.of(context).primaryColor,
+        unselectedItemColor: Colors.grey[600],
+        selectedLabelStyle: const TextStyle(fontWeight: FontWeight.w500),
+        items: const [
+          BottomNavigationBarItem(icon: Icon(Icons.dashboard), label: 'Home'),
+          BottomNavigationBarItem(icon: Icon(Icons.price_check), label: 'Prices'),
+          BottomNavigationBarItem(icon: Icon(Icons.compare), label: 'Compare'),
+          BottomNavigationBarItem(icon: Icon(Icons.store), label: 'Markets'),
+          BottomNavigationBarItem(icon: Icon(Icons.auto_awesome), label: 'AI Insights'),
+          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
+        ],
+      ),
     );
   }
 }
