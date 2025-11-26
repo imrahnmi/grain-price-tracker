@@ -17,6 +17,7 @@ dependencies:
   syncfusion_flutter_charts: ^31.2.12
   shared_preferences: ^2.2.2  # Add this line
   supabase_flutter: ^2.10.3
+  intl: ^0.20.2
 
 dev_dependencies:
   flutter_test:

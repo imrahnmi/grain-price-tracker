@@ -166,7 +166,7 @@ class __DashboardScreenState extends State<_DashboardScreen> {
               ),
               SizedBox(height: 8),
               Text(
-                'Real-time grain prices across Bauchi markets',
+                'Real-time grain prices across Nigeria markets',
                 style: TextStyle(
                   color: Colors.white70,
                   fontSize: 14,

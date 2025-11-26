@@ -1,4 +1,5 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:flutter/foundation.dart';
 
 class ApiService {
   static final supabase = Supabase.instance.client;
@@ -11,8 +12,8 @@ class ApiService {
           .order('name');
       return List<Map<String, dynamic>>.from(response);
     } catch (e) {
-      print('Error fetching markets: $e');
-      return []; // Return empty list instead of throwing
+      debugPrint('Error fetching markets: $e');
+      rethrow;
     }
   }
 
@@ -24,8 +25,8 @@ class ApiService {
           .order('name');
       return List<Map<String, dynamic>>.from(response);
     } catch (e) {
-      print('Error fetching commodities: $e');
-      return [];
+      debugPrint('Error fetching commodities: $e');
+      rethrow;
     }
   }
 
@@ -33,42 +34,62 @@ class ApiService {
     try {
       final response = await supabase
           .from('price_entries')
-          .select('''...''')
+          .select('''
+            *,
+            markets (name, lga, state),
+            commodities (name)
+          ''')
           .eq('commodity_id', commodityId)
           .order('created_at', ascending: false);
-
-      if (response.isEmpty) {
-        throw Exception('No price data available');
-      }
-
+      
+      debugPrint('Fetched ${response.length} prices for commodity $commodityId');
       return List<Map<String, dynamic>>.from(response);
     } catch (e) {
-      print('Error fetching commodity prices: $e');
-      throw Exception('Failed to load prices: ${e.toString()}');
+      debugPrint('Error fetching commodity prices: $e');
+      rethrow;
     }
   }
 
   static Future<List<Map<String, dynamic>>> comparePrices(int commodityId) async {
     try {
-      // Get prices from the last 24 hours
-      final oneDayAgo = DateTime.now().subtract(const Duration(days: 1)).toIso8601String();
-
       final response = await supabase
           .from('price_entries')
           .select('''
             price,
             quality_grade,
             created_at,
-            markets (name)
+            markets (name, lga, state),
+            commodities (name)
           ''')
           .eq('commodity_id', commodityId)
-          .gte('created_at', oneDayAgo)
           .order('price', ascending: true);
-
+      
+      debugPrint('Fetched ${response.length} prices for comparison');
       return List<Map<String, dynamic>>.from(response);
     } catch (e) {
-      print('Error comparing prices: $e');
-      return [];
+      debugPrint('Error comparing prices: $e');
+      rethrow;
+    }
+  }
+
+  // NEW: Get all prices for dashboard
+  static Future<List<Map<String, dynamic>>> getAllPrices() async {
+    try {
+      final response = await supabase
+          .from('price_entries')
+          .select('''
+            *,
+            markets (name, lga, state),
+            commodities (name)
+          ''')
+          .order('created_at', ascending: false)
+          .limit(20);
+      
+      debugPrint('Fetched ${response.length} total prices');
+      return List<Map<String, dynamic>>.from(response);
+    } catch (e) {
+      debugPrint('Error fetching all prices: $e');
+      rethrow;
     }
   }
 }

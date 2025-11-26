@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_spinkit/flutter_spinkit.dart';
+// import 'package:flutter_spinkit/flutter_spinkit.dart';
 import '../services/api_service.dart';
 import '../services/favorites_service.dart';
 
@@ -7,7 +7,7 @@ class PricesScreen extends StatefulWidget {
   const PricesScreen({super.key});
 
   @override
-  _PricesScreenState createState() => _PricesScreenState();
+  State<PricesScreen> createState() => _PricesScreenState();
 }
 
 class _PricesScreenState extends State<PricesScreen> {
@@ -37,7 +37,7 @@ class _PricesScreenState extends State<PricesScreen> {
         }
       });
     } catch (e) {
-      print('Error loading data: $e');
+      debugPrint('Error loading data: $e');
       setState(() => isLoading = false);
     }
   }
@@ -56,7 +56,7 @@ class _PricesScreenState extends State<PricesScreen> {
         isLoading = false;
       });
     } catch (e) {
-      print('Error loading prices: $e');
+      debugPrint('Error loading prices: $e');
       setState(() => isLoading = false);
     }
   }
@@ -89,125 +89,227 @@ class _PricesScreenState extends State<PricesScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        // Search Bar
-        Padding(
-          padding: const EdgeInsets.all(16),
-          child: TextField(
-            decoration: InputDecoration(
-              hintText: 'Search markets, commodities, or prices...',
-              prefixIcon: const Icon(Icons.search),
-              suffixIcon: _searchQuery.isNotEmpty
-                  ? IconButton(
-                      icon: const Icon(Icons.clear),
-                      onPressed: _clearSearch,
-                    )
-                  : null,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
+    return Scaffold(
+      backgroundColor: const Color(0xFFF8F9FA),
+      body: Column(
+        children: [
+          // Header
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.fromLTRB(24, 60, 24, 24),
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [Color(0xFF00C853), Color(0xFF64DD17)],
+              ),
+              borderRadius: BorderRadius.only(
+                bottomLeft: Radius.circular(24),
+                bottomRight: Radius.circular(24),
               ),
             ),
-            onChanged: _filterPrices,
-          ),
-        ),
-
-        // Commodity Selector
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          color: Colors.green[50],
-          child: Row(
-            children: [
-              const Icon(Icons.filter_list, size: 20, color: Colors.green),
-              const SizedBox(width: 8),
-              Expanded(
-                child: DropdownButton<int>(
-                  value: selectedCommodityId,
-                  items: commodities.map((commodity) {
-                    return DropdownMenuItem<int>(
-                      value: commodity['id'],
-                      child: Text(
-                        commodity['name'] ?? 'Unknown',
-                        style: const TextStyle(fontSize: 14),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Market Prices',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 28,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Real-time grain prices across markets',
+                  style: TextStyle(
+                    color: Colors.white.withOpacity(0.9),
+                    fontSize: 16,
+                  ),
+                ),
+                const SizedBox(height: 20),
+                
+                // Search Bar
+                Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.1),
+                        blurRadius: 16,
+                        offset: const Offset(0, 4),
                       ),
-                    );
-                  }).toList(),
-                  onChanged: (value) => loadPrices(value!),
-                  isExpanded: true,
-                  underline: const SizedBox(),
+                    ],
+                  ),
+                  child: TextField(
+                    decoration: InputDecoration(
+                      hintText: 'Search markets, commodities...',
+                      hintStyle: TextStyle(color: Colors.grey[500]),
+                      prefixIcon: Icon(Icons.search, color: Colors.grey[500]),
+                      suffixIcon: _searchQuery.isNotEmpty
+                          ? IconButton(
+                              icon: Icon(Icons.clear, color: Colors.grey[500]),
+                              onPressed: _clearSearch,
+                            )
+                          : null,
+                      border: InputBorder.none,
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                    ),
+                    onChanged: _filterPrices,
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          // Commodity Filter
+          Container(
+            margin: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.05),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.filter_alt_outlined, color: Color(0xFF00C853), size: 20),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: DropdownButton<int>(
+                    value: selectedCommodityId,
+                    items: commodities.map((commodity) {
+                      return DropdownMenuItem<int>(
+                        value: commodity['id'],
+                        child: Text(
+                          commodity['name'] ?? 'Unknown',
+                          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+                        ),
+                      );
+                    }).toList(),
+                    onChanged: (value) => loadPrices(value!),
+                    isExpanded: true,
+                    underline: const SizedBox(),
+                    style: TextStyle(color: Colors.grey[800]),
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          // Results Count
+          if (!isLoading && _searchQuery.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: Text(
+                '${filteredPrices.length} result${filteredPrices.length == 1 ? '' : 's'} found',
+                style: TextStyle(color: Colors.grey[600], fontSize: 14),
+              ),
+            ),
+
+          const SizedBox(height: 8),
+
+          // Prices List
+          Expanded(
+            child: isLoading
+                ? _buildLoadingState()
+                : filteredPrices.isEmpty
+                    ? _buildEmptyState()
+                    : _buildPricesList(),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLoadingState() {
+    return ListView.builder(
+      padding: const EdgeInsets.all(16),
+      itemCount: 6,
+      itemBuilder: (context, index) {
+        return Container(
+          margin: const EdgeInsets.only(bottom: 12),
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.grey[100],
+            borderRadius: BorderRadius.circular(16),
+          ),
+          height: 100,
+        );
+      },
+    );
+  }
+
+  Widget _buildEmptyState() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.search_off_outlined,
+            size: 80,
+            color: Colors.grey[300],
+          ),
+          const SizedBox(height: 16),
+          Text(
+            _searchQuery.isEmpty ? 'No price data available' : 'No results found',
+            style: TextStyle(
+              fontSize: 18,
+              color: Colors.grey[500],
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          if (_searchQuery.isNotEmpty) ...[
+            const SizedBox(height: 8),
+            TextButton(
+              onPressed: _clearSearch,
+              child: const Text(
+                'Clear search',
+                style: TextStyle(
+                  color: Color(0xFF00C853),
+                  fontWeight: FontWeight.w600,
                 ),
               ),
-            ],
-          ),
-        ),
-
-        // Results Count
-        if (!isLoading && _searchQuery.isNotEmpty)
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: Text(
-              '${filteredPrices.length} result${filteredPrices.length == 1 ? '' : 's'} found',
-              style: const TextStyle(color: Colors.grey, fontSize: 12),
             ),
-          ),
+          ],
+        ],
+      ),
+    );
+  }
 
-        // Prices List
-        Expanded(
-          child: isLoading
-              ? const Center(
-                  child: SpinKitFadingCircle(
-                    color: Colors.green,
-                    size: 50.0,
-                  ),
-                )
-              : filteredPrices.isEmpty
-                  ? Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.search_off,
-                          size: 64,
-                          color: Colors.grey[400],
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          _searchQuery.isEmpty ? 'No price data available' : 'No results found',
-                          style: const TextStyle(fontSize: 16, color: Colors.grey),
-                        ),
-                        if (_searchQuery.isNotEmpty)
-                          TextButton(
-                            onPressed: _clearSearch,
-                            child: const Text('Clear search'),
-                          ),
-                      ],
-                    )
-                  : ListView.builder(
-                      itemCount: filteredPrices.length,
-                      itemBuilder: (context, index) {
-                        final price = filteredPrices[index];
-                        return PriceCard(
-                          marketName: price['markets']?['name'] ?? 'Unknown Market',
-                          commodityName: price['commodities']?['name'] ?? 'Unknown Commodity',
-                          price: price['price'].toDouble(),
-                          quality: price['quality_grade'] ?? 'N/A',
-                          date: DateTime.parse(price['created_at']),
-                        );
-                      },
-                    ),
-        ),
-      ],
+  Widget _buildPricesList() {
+    return ListView.builder(
+      padding: const EdgeInsets.all(16),
+      itemCount: filteredPrices.length,
+      itemBuilder: (context, index) {
+        final price = filteredPrices[index];
+        return ModernPriceCard(
+          marketName: price['markets']?['name'] ?? 'Unknown Market',
+          commodityName: price['commodities']?['name'] ?? 'Unknown Commodity',
+          price: (price['price'] as num).toDouble(),
+          quality: price['quality_grade'] ?? 'N/A',
+          date: DateTime.parse(price['created_at']),
+        );
+      },
     );
   }
 }
 
-class PriceCard extends StatefulWidget {
+class ModernPriceCard extends StatefulWidget {
   final String marketName;
   final String commodityName;
   final double price;
   final String quality;
   final DateTime date;
 
-  const PriceCard({
+  const ModernPriceCard({
     super.key,
     required this.marketName,
     required this.commodityName,
@@ -217,10 +319,10 @@ class PriceCard extends StatefulWidget {
   });
 
   @override
-  _PriceCardState createState() => _PriceCardState();
+  State<ModernPriceCard> createState() => _ModernPriceCardState();
 }
 
-class _PriceCardState extends State<PriceCard> {
+class _ModernPriceCardState extends State<ModernPriceCard> {
   bool isFavorite = false;
 
   @override
@@ -245,85 +347,133 @@ class _PriceCardState extends State<PriceCard> {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      elevation: 2,
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      child: Card(
+        elevation: 2,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Row(
+            children: [
+              // Market Icon
+              Container(
+                width: 50,
+                height: 50,
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFF00C853), Color(0xFF64DD17)],
+                  ),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Icon(
+                  Icons.store_outlined,
+                  color: Colors.white,
+                  size: 24,
+                ),
+              ),
+              
+              const SizedBox(width: 16),
+              
+              // Market Info
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      widget.marketName,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.black87,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      widget.commodityName,
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.grey[600],
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: _getQualityColor(widget.quality).withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(6),
+                            border: Border.all(
+                              color: _getQualityColor(widget.quality).withOpacity(0.3),
+                            ),
+                          ),
+                          child: Text(
+                            'Grade ${widget.quality}',
+                            style: TextStyle(
+                              fontSize: 10,
+                              color: _getQualityColor(widget.quality),
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          _formatDate(widget.date),
+                          style: TextStyle(
+                            fontSize: 10,
+                            color: Colors.grey[500],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              
+              // Price & Favorite
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
                   Text(
-                    widget.marketName,
+                    '₦${widget.price.toStringAsFixed(0)}',
                     style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
+                      fontSize: 20,
+                      fontWeight: FontWeight.w800,
+                      color: Color(0xFF00C853),
                     ),
                   ),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: 2),
                   Text(
-                    widget.commodityName,
+                    'per bag',
                     style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.grey[600],
+                      fontSize: 12,
+                      color: Colors.grey[500],
                     ),
                   ),
-                  const SizedBox(height: 4),
-                  Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                        decoration: BoxDecoration(
-                          color: _getQualityColor(widget.quality),
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                        child: Text(
-                          'Quality: ${widget.quality}',
-                          style: const TextStyle(fontSize: 10, color: Colors.white),
-                        ),
+                  const SizedBox(height: 8),
+                  GestureDetector(
+                    onTap: _toggleFavorite,
+                    child: Container(
+                      padding: const EdgeInsets.all(6),
+                      decoration: BoxDecoration(
+                        color: isFavorite ? Colors.red.withOpacity(0.1) : Colors.grey.withOpacity(0.1),
+                        shape: BoxShape.circle,
                       ),
-                      const SizedBox(width: 8),
-                      Text(
-                        _formatDate(widget.date),
-                        style: const TextStyle(fontSize: 10, color: Colors.grey),
+                      child: Icon(
+                        isFavorite ? Icons.favorite : Icons.favorite_border,
+                        color: isFavorite ? Colors.red : Colors.grey,
+                        size: 18,
                       ),
-                    ],
+                    ),
                   ),
                 ],
               ),
-            ),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Text(
-                  '₦${widget.price.toStringAsFixed(0)}',
-                  style: const TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.green,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                const Text(
-                  'per bag',
-                  style: TextStyle(fontSize: 12, color: Colors.grey),
-                ),
-                const SizedBox(height: 8),
-                IconButton(
-                  icon: Icon(
-                    isFavorite ? Icons.favorite : Icons.favorite_border,
-                    color: isFavorite ? Colors.red : Colors.grey,
-                    size: 20,
-                  ),
-                  onPressed: _toggleFavorite,
-                ),
-              ],
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -332,11 +482,11 @@ class _PriceCardState extends State<PriceCard> {
   Color _getQualityColor(String quality) {
     switch (quality) {
       case 'A':
-        return Colors.green;
+        return const Color(0xFF00C853);
       case 'B':
-        return Colors.orange;
+        return const Color(0xFFFF9800);
       case 'C':
-        return Colors.red;
+        return const Color(0xFFF44336);
       default:
         return Colors.grey;
     }

@@ -9,51 +9,58 @@ class UserProfileScreen extends StatefulWidget {
 }
 
 class _UserProfileScreenState extends State<UserProfileScreen> {
-  Map<String, dynamic>? userProfile;
-  bool isLoading = true;
+  Map<String, dynamic>? _userProfile;
+  bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
-    loadUserProfile();
+    _loadUserProfile();
   }
 
-  Future<void> loadUserProfile() async {
-    final profile = await AuthService.getProfile();
-    if (mounted) {
+  Future<void> _loadUserProfile() async {
+    try {
+      final profile = await AuthService.getProfile();
       setState(() {
-        userProfile = profile;
-        isLoading = false;
+        _userProfile = profile;
+        _isLoading = false;
       });
+    } catch (e) {
+      debugPrint('Error loading profile: $e');
+      setState(() => _isLoading = false);
     }
   }
 
   Future<void> _signOut() async {
     await AuthService.signOut();
-    if (mounted) {
-      Navigator.pushReplacementNamed(context, '/login');
-    }
+    // Navigation handled by AuthWrapper
   }
 
-  void _showLogoutDialog() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Logout'),
-        content: const Text('Are you sure you want to logout?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              _signOut();
-            },
-            child: const Text('Logout', style: TextStyle(color: Colors.red)),
-          ),
-        ],
+  void _showEditProfile() {
+    // TODO: Implement edit profile functionality
+    _showComingSoon('Edit Profile');
+  }
+
+  void _showSettings() {
+    // TODO: Implement settings
+    _showComingSoon('Settings');
+  }
+
+  void _showHelpSupport() {
+    // TODO: Implement help & support
+    _showComingSoon('Help & Support');
+  }
+
+  void _showAboutApp() {
+    // TODO: Implement about app
+    _showComingSoon('About App');
+  }
+
+  void _showComingSoon(String feature) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('$feature - Coming Soon!'),
+        backgroundColor: const Color(0xFF00C853),
       ),
     );
   }
@@ -61,147 +68,311 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: isLoading
+      backgroundColor: const Color(0xFFF8F9FA),
+      body: _isLoading
           ? const Center(child: CircularProgressIndicator())
-          : SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                children: [
-                  // Profile Header
-                  Card(
-                    elevation: 4,
-                    child: Padding(
-                      padding: const EdgeInsets.all(20),
-                      child: Column(
-                        children: [
-                          const CircleAvatar(
-                            radius: 40,
-                            backgroundColor: Colors.green,
-                            child: Icon(Icons.person, color: Colors.white, size: 40),
-                          ),
-                          const SizedBox(height: 16),
-                          Text(
-                            userProfile?['full_name'] ?? 'User',
-                            style: const TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
+          : CustomScrollView(
+              slivers: [
+                // Header
+                SliverAppBar(
+                  expandedHeight: 200,
+                  flexibleSpace: FlexibleSpaceBar(
+                    background: Container(
+                      decoration: const BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [Color(0xFF9C27B0), Color(0xFFE1BEE7)],
+                        ),
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(24.0),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // Profile Avatar
+                            CircleAvatar(
+                              radius: 40,
+                              backgroundColor: Colors.white.withOpacity(0.2),
+                              child: const Icon(
+                                Icons.person_outlined,
+                                color: Colors.white,
+                                size: 40,
+                              ),
                             ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            userProfile?['email'] ?? 'No email',
-                            style: TextStyle(color: Colors.grey[600]),
-                          ),
-                          const SizedBox(height: 8),
-                          Chip(
-                            label: Text(
-                              userProfile?['user_type']?.toString().toUpperCase() ?? 'USER',
-                              style: const TextStyle(color: Colors.white),
+                            const SizedBox(height: 16),
+                            Text(
+                              _userProfile?['full_name'] ?? 'User',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 24,
+                                fontWeight: FontWeight.w700,
+                              ),
                             ),
-                            backgroundColor: Colors.green,
-                          ),
-                        ],
+                            const SizedBox(height: 4),
+                            Text(
+                              _userProfile?['email'] ?? 'No email',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 16,
+                                fontWeight: FontWeight.w400,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ),
-                  const SizedBox(height: 24),
+                ),
 
-                  // Account Information
-                  Card(
-                    elevation: 4,
-                    child: Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            'Account Information',
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-                          _buildInfoItem('User ID', userProfile?['id'] ?? 'N/A'),
-                          _buildInfoItem('Account Type', userProfile?['user_type'] ?? 'user'),
-                          _buildInfoItem('Joined Date', 'Recently'),
-                          if (userProfile?['market_id'] != null)
-                            _buildInfoItem('Assigned Market', 'Market ${userProfile?['market_id']}'),
-                        ],
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 24),
+                // Content
+                SliverList(
+                  delegate: SliverChildListDelegate([
+                    const SizedBox(height: 24),
 
-                  // Quick Actions
-                  Card(
-                    elevation: 4,
-                    child: Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            'Quick Actions',
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
+                    // User Type Badge
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 24),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                        decoration: BoxDecoration(
+                          color: _getUserTypeColor().withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(
+                            color: _getUserTypeColor().withOpacity(0.3),
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              _getUserTypeIcon(),
+                              color: _getUserTypeColor(),
+                              size: 16,
                             ),
-                          ),
-                          const SizedBox(height: 16),
-                          Wrap(
-                            spacing: 12,
-                            runSpacing: 12,
-                            children: [
-                              _buildActionButton('Edit Profile', Icons.edit, () {}),
-                              _buildActionButton('Settings', Icons.settings, () {}),
-                              _buildActionButton('Help & Support', Icons.help, () {}),
-                              _buildActionButton('About App', Icons.info, () {}),
-                            ],
-                          ),
-                        ],
+                            const SizedBox(width: 8),
+                            Text(
+                              _getUserTypeLabel(),
+                              style: TextStyle(
+                                color: _getUserTypeColor(),
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 24),
 
-                  // Logout Button
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton.icon(
-                      onPressed: _showLogoutDialog,
-                      icon: const Icon(Icons.logout),
-                      label: const Text('Logout'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.red,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
+                    const SizedBox(height: 32),
+
+                    // Quick Actions
+                    _buildQuickActions(),
+
+                    const SizedBox(height: 32),
+
+                    // App Info Section
+                    _buildAppInfoSection(),
+
+                    const SizedBox(height: 32),
+                  ]),
+                ),
+              ],
             ),
     );
   }
 
-  Widget _buildInfoItem(String label, String value) {
+  Color _getUserTypeColor() {
+    final userType = _userProfile?['user_type'] ?? 'user';
+    switch (userType) {
+      case 'admin':
+        return const Color(0xFFF44336);
+      case 'validator':
+        return const Color(0xFFFF9800);
+      default:
+        return const Color(0xFF00C853);
+    }
+  }
+
+  IconData _getUserTypeIcon() {
+    final userType = _userProfile?['user_type'] ?? 'user';
+    switch (userType) {
+      case 'admin':
+        return Icons.admin_panel_settings_outlined;
+      case 'validator':
+        return Icons.verified_outlined;
+      default:
+        return Icons.person_outlined;
+    }
+  }
+
+  String _getUserTypeLabel() {
+    final userType = _userProfile?['user_type'] ?? 'user';
+    switch (userType) {
+      case 'admin':
+        return 'Administrator';
+      case 'validator':
+        return 'Market Validator';
+      default:
+        return 'Regular User';
+    }
+  }
+
+  Widget _buildQuickActions() {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: Row(
+      padding: const EdgeInsets.symmetric(horizontal: 24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Expanded(
-            flex: 2,
-            child: Text(
-              label,
-              style: const TextStyle(fontWeight: FontWeight.w500),
+          const Text(
+            'Quick Actions',
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.w700,
+              color: Colors.black87,
             ),
           ),
-          Expanded(
-            flex: 3,
-            child: Text(
-              value,
-              style: TextStyle(color: Colors.grey[600]),
+          const SizedBox(height: 16),
+          GridView.count(
+            crossAxisCount: 2,
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            crossAxisSpacing: 16,
+            mainAxisSpacing: 16,
+            children: [
+              _buildActionCard(
+                'Edit Profile',
+                Icons.edit_outlined,
+                const Color(0xFF2196F3),
+                _showEditProfile,
+              ),
+              _buildActionCard(
+                'Settings',
+                Icons.settings_outlined,
+                const Color(0xFFFF9800),
+                _showSettings,
+              ),
+              _buildActionCard(
+                'Help & Support',
+                Icons.help_outline,
+                const Color(0xFF00C853),
+                _showHelpSupport,
+              ),
+              _buildActionCard(
+                'About App',
+                Icons.info_outline,
+                const Color(0xFF9C27B0),
+                _showAboutApp,
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildActionCard(String title, IconData icon, Color color, VoidCallback onTap) {
+    return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16),
+        child: Container(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  color: color.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(
+                  icon,
+                  color: color,
+                  size: 24,
+                ),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                title,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontWeight: FontWeight.w600,
+                  color: Colors.grey[800],
+                  fontSize: 14,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAppInfoSection() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'App Information',
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.w700,
+              color: Colors.black87,
+            ),
+          ),
+          const SizedBox(height: 16),
+          Card(
+            elevation: 2,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                children: [
+                  _buildInfoItem('App Version', '1.0.0', Icons.info_outline),
+                  const Divider(),
+                  _buildInfoItem('Build Number', '2024.1.0', Icons.build_outlined),
+                  const Divider(),
+                  _buildInfoItem('Last Updated', 'Nov 2024', Icons.update_outlined),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 24),
+          
+          // Sign Out Button
+          SizedBox(
+            width: double.infinity,
+            height: 56,
+            child: ElevatedButton.icon(
+              onPressed: _signOut,
+              icon: const Icon(Icons.logout_outlined, size: 20),
+              label: const Text(
+                'Sign Out',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red[50],
+                foregroundColor: Colors.red,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                elevation: 0,
+              ),
             ),
           ),
         ],
@@ -209,15 +380,36 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     );
   }
 
-  Widget _buildActionButton(String label, IconData icon, VoidCallback onTap) {
-    return ElevatedButton.icon(
-      onPressed: onTap,
-      icon: Icon(icon),
-      label: Text(label),
-      style: ElevatedButton.styleFrom(
-        backgroundColor: Colors.white,
-        foregroundColor: Theme.of(context).primaryColor,
-        elevation: 2,
+  Widget _buildInfoItem(String label, String value, IconData icon) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 12),
+      child: Row(
+        children: [
+          Icon(
+            icon,
+            color: Colors.grey[500],
+            size: 20,
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Text(
+              label,
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.grey[700],
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+          Text(
+            value,
+            style: const TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: Colors.black87,
+            ),
+          ),
+        ],
       ),
     );
   }

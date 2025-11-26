@@ -1,4 +1,5 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:flutter/foundation.dart';
 
 class AuthService {
   static final supabase = Supabase.instance.client;
@@ -28,45 +29,31 @@ class AuthService {
           'full_name': fullName,
           'user_type': userType,
           'market_id': marketId,
-        }); // Removed .execute()
+          'is_active': true,
+        });
 
-        print('User registered as: $userType'); // Debug log
+        debugPrint('User registered as: $userType');
 
         // If validator, ensure they exist in validators table
         if (userType == 'validator') {
           try {
-            // Check if validator already exists
-            final existingValidator = await supabase
-                .from('validators')
-                .select()
-                .eq('email', email)
-                .maybeSingle();
-
-            if (existingValidator == null) {
-              // Create new validator entry
-              await supabase.from('validators').insert({
-                'name': fullName,
-                'email': email,
-                'market_id': marketId ?? 1,
-                'user_id': authResponse.user!.id,
-                'is_active': true,
-              }); // Removed .execute()
-            } else {
-              // Update existing validator with user ID
-              await supabase.from('validators').update({
-                'user_id': authResponse.user!.id,
-              }).eq('email', email); // Removed .execute()
-            }
-            print('Validator profile updated'); // Debug log
+            await supabase.from('validators').insert({
+              'name': fullName,
+              'email': email,
+              'market_id': marketId ?? 1,
+              'user_id': authResponse.user!.id,
+              'is_active': true,
+            });
+            debugPrint('Validator profile updated');
           } catch (e) {
-            print('Error updating validator table: $e');
+            debugPrint('Error updating validator table: $e');
           }
         }
       }
 
       return authResponse;
     } catch (e) {
-      print('Signup error: $e');
+      debugPrint('Signup error: $e');
       rethrow;
     }
   }
@@ -98,10 +85,38 @@ class AuthService {
           .from('profiles')
           .select()
           .eq('id', user.id)
-          .single();
+          .maybeSingle(); // Use maybeSingle instead of single
+
+      if (response == null) {
+        debugPrint('No profile found for user: ${user.email}');
+        // Create a default profile if none exists
+        return await _createDefaultProfile(user);
+      }
+
       return response;
     } catch (e) {
-      print('Error fetching profile: $e');
+      debugPrint('Error fetching profile: $e');
+      // Create default profile on error
+      return await _createDefaultProfile(user);
+    }
+  }
+
+  static Future<Map<String, dynamic>?> _createDefaultProfile(User user) async {
+    try {
+      debugPrint('Creating default profile for user: ${user.email}');
+      
+      final defaultProfile = {
+        'id': user.id,
+        'email': user.email,
+        'full_name': user.email?.split('@').first ?? 'User',
+        'user_type': 'user', // Default to regular user
+        'is_active': true,
+      };
+
+      await supabase.from('profiles').insert(defaultProfile);
+      return defaultProfile;
+    } catch (e) {
+      debugPrint('Error creating default profile: $e');
       return null;
     }
   }
@@ -114,10 +129,15 @@ class AuthService {
     return currentUser != null;
   }
 
-  // Additional helper methods
+  // Enhanced helper methods with better error handling
   static Future<String?> getUserType() async {
-    final profile = await getProfile();
-    return profile?['user_type'];
+    try {
+      final profile = await getProfile();
+      return profile?['user_type'];
+    } catch (e) {
+      debugPrint('Error getting user type: $e');
+      return 'user'; // Default fallback
+    }
   }
 
   static Future<bool> isAdmin() async {
@@ -128,5 +148,19 @@ class AuthService {
   static Future<bool> isValidator() async {
     final userType = await getUserType();
     return userType == 'validator';
+  }
+
+  // Debug method to check current auth state
+  static Future<void> debugAuthState() async {
+    final user = currentUser;
+    final profile = await getProfile();
+    
+    debugPrint('=== AUTH DEBUG ===');
+    debugPrint('Logged in: $isLoggedIn');
+    debugPrint('User: ${user?.email}');
+    debugPrint('User ID: ${user?.id}');
+    debugPrint('Profile exists: ${profile != null}');
+    debugPrint('User Type: ${profile?['user_type']}');
+    debugPrint('==================');
   }
 }

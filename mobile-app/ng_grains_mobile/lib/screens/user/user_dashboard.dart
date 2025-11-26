@@ -23,26 +23,24 @@ class _UserDashboardState extends State<UserDashboard> {
 
   Future<void> loadDashboardData() async {
     try {
-      final prices = await ApiService.getCommodityPrices(1); // Rice prices
+      final prices = await ApiService.getAllPrices();
       final commodities = await ApiService.getCommodities();
-      
-      // Get AI insight for today
       final insight = await AIService.predictPrice(
         commodity: 'Rice',
-        market: 'Bauchi',
+        market: 'Nigeria',
         days: 1,
       );
 
       if (mounted) {
         setState(() {
-          recentPrices = prices.take(3).toList();
+          recentPrices = prices.take(5).toList();
           popularCommodities = commodities.take(4).toList();
           aiInsight = insight;
           isLoading = false;
         });
       }
     } catch (e) {
-      print('Error loading dashboard data: $e');
+      debugPrint('Error loading dashboard data: $e');
       if (mounted) {
         setState(() => isLoading = false);
       }
@@ -52,202 +50,302 @@ class _UserDashboardState extends State<UserDashboard> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFFF8F9FA),
       body: isLoading
-          ? const Center(child: CircularProgressIndicator())
+          ? _buildLoadingShimmer()
           : RefreshIndicator(
               onRefresh: loadDashboardData,
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Welcome Section
-                    _buildWelcomeSection(),
-                    const SizedBox(height: 24),
-                    
-                    // AI Market Insight
-                    if (aiInsight != null) _buildAIMarketInsight(),
-                    const SizedBox(height: 24),
-                    
-                    // Quick Access
-                    _buildQuickAccess(),
-                    const SizedBox(height: 24),
-                    
-                    // Recent Prices
-                    _buildRecentPrices(),
-                    const SizedBox(height: 24),
-                    
-                    // Popular Commodities
-                    _buildPopularCommodities(),
-                  ],
-                ),
-              ),
-            ),
-    );
-  }
-
-  Widget _buildWelcomeSection() {
-    return Card(
-      elevation: 4,
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Row(
-          children: [
-            const CircleAvatar(
-              radius: 30,
-              backgroundColor: Colors.green,
-              child: Icon(Icons.person, color: Colors.white, size: 30),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Welcome!',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
+              child: CustomScrollView(
+                slivers: [
+                  // Header
+                  SliverAppBar(
+                    expandedHeight: 200,
+                    flexibleSpace: FlexibleSpaceBar(
+                      background: Container(
+                        decoration: const BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                            colors: [Color(0xFF00C853), Color(0xFF64DD17)],
+                          ),
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.all(24.0),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const CircleAvatar(
+                                radius: 30,
+                                backgroundColor: Colors.white,
+                                child: Icon(
+                                  Icons.person,
+                                  color: Color(0xFF00C853),
+                                  size: 30,
+                                ),
+                              ),
+                              const SizedBox(height: 16),
+                              const Text(
+                                'Welcome Back!',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 24,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                'Track grain prices in real-time',
+                                style: TextStyle(
+                                  color: Colors.white.withOpacity(0.9),
+                                  fontSize: 16,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
                     ),
                   ),
-                  const SizedBox(height: 4),
-                  Text(
-                    'Track grain prices across Bauchi markets',
-                    style: TextStyle(color: Colors.grey[600]),
-                  ),
-                  const SizedBox(height: 8),
-                  Wrap(
-                    spacing: 8,
-                    children: [
-                      _buildStatChip('5 Markets', Icons.store),
-                      _buildStatChip('5 Grains', Icons.shopping_basket),
-                    ],
+
+                  // Content
+                  SliverList(
+                    delegate: SliverChildListDelegate([
+                      const SizedBox(height: 24),
+
+                      // AI Insight Card
+                      if (aiInsight != null) _buildAIMarketInsight(),
+
+                      const SizedBox(height: 24),
+
+                      // Quick Actions
+                      _buildQuickActions(),
+
+                      const SizedBox(height: 24),
+
+                      // Recent Prices
+                      _buildRecentPrices(),
+
+                      const SizedBox(height: 24),
+
+                      // Popular Commodities
+                      _buildPopularCommodities(),
+
+                      const SizedBox(height: 32),
+                    ]),
                   ),
                 ],
               ),
             ),
-          ],
-        ),
-      ),
     );
   }
 
-  Widget _buildStatChip(String text, IconData icon) {
-    return Chip(
-      label: Text(text),
-      avatar: Icon(icon, size: 16),
-      backgroundColor: Colors.green[50],
+  Widget _buildLoadingShimmer() {
+    return CustomScrollView(
+      slivers: [
+        SliverAppBar(
+          expandedHeight: 200,
+          flexibleSpace: FlexibleSpaceBar(
+            background: Container(
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [Color(0xFF00C853), Color(0xFF64DD17)],
+                ),
+              ),
+            ),
+          ),
+        ),
+        SliverList(
+          delegate: SliverChildListDelegate([
+            const SizedBox(height: 24),
+            _buildShimmerCard(),
+            const SizedBox(height: 16),
+            _buildShimmerCard(),
+            const SizedBox(height: 16),
+            _buildShimmerCard(),
+          ]),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildShimmerCard() {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.grey[200],
+        borderRadius: BorderRadius.circular(16),
+      ),
+      height: 100,
     );
   }
 
   Widget _buildAIMarketInsight() {
     final isPositive = aiInsight!['trend'] == 'up';
     
-    return Card(
-      elevation: 4,
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Row(
-              children: [
-                Icon(
-                  Icons.auto_awesome,
-                  color: Colors.purple,
-                  size: 24,
-                ),
-                SizedBox(width: 8),
-                Text(
-                  'AI Market Insight',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16),
+      child: Card(
+        elevation: 4,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Row(
+            children: [
+              Container(
+                width: 50,
+                height: 50,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: isPositive
+                        ? [const Color(0xFF00C853), const Color(0xFF64DD17)]
+                        : [const Color(0xFFFF5252), const Color(0xFFFF867F)],
                   ),
+                  borderRadius: BorderRadius.circular(12),
                 ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            Row(
-              children: [
-                Icon(
+                child: Icon(
                   isPositive ? Icons.trending_up : Icons.trending_down,
-                  color: isPositive ? Colors.green : Colors.red,
-                  size: 32,
+                  color: Colors.white,
+                  size: 28,
                 ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Rice prices trending ${isPositive ? 'up' : 'down'}',
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w500,
-                        ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'AI Market Insight',
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                            fontWeight: FontWeight.w600,
+                          ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Rice prices trending ${isPositive ? 'up' : 'down'} by ${aiInsight!['trendPercentage']}%',
+                      style: TextStyle(
+                        color: Colors.grey[600],
+                        fontSize: 14,
                       ),
-                      Text(
-                        '${aiInsight!['trendPercentage']}% ${isPositive ? 'increase' : 'decrease'} predicted',
-                        style: TextStyle(
-                          color: isPositive ? Colors.green : Colors.red,
-                        ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      aiInsight!['recommendation'],
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: Colors.blueGrey,
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
-          ],
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildQuickAccess() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          'Quick Access',
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-        ),
-        const SizedBox(height: 12),
-        GridView.count(
-          crossAxisCount: 2,
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          crossAxisSpacing: 12,
-          mainAxisSpacing: 12,
-          children: [
-            _buildQuickAccessCard('Price Comparison', Icons.compare, Colors.blue, '/compare'),
-            _buildQuickAccessCard('Market Prices', Icons.store, Colors.green, '/markets'),
-            _buildQuickAccessCard('AI Predictions', Icons.auto_awesome, Colors.purple, '/ai-insights'),
-            _buildQuickAccessCard('Price Alerts', Icons.notifications, Colors.orange, '/alerts'),
-          ],
-        ),
-      ],
+  Widget _buildQuickActions() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Quick Actions',
+            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.w700,
+                ),
+          ),
+          const SizedBox(height: 16),
+          GridView.count(
+            crossAxisCount: 2,
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            crossAxisSpacing: 12,
+            mainAxisSpacing: 12,
+            children: [
+              _buildActionCard(
+                'Price Comparison',
+                Icons.analytics_outlined,
+                const Color(0xFF536DFE),
+                () {
+                  // Navigate to compare
+                },
+              ),
+              _buildActionCard(
+                'Market Prices',
+                Icons.store_mall_directory_outlined,
+                const Color(0xFF00C853),
+                () {
+                  // Navigate to markets
+                },
+              ),
+              _buildActionCard(
+                'AI Predictions',
+                Icons.auto_awesome_mosaic_outlined,
+                const Color(0xFF9C27B0),
+                () {
+                  // Navigate to AI insights
+                },
+              ),
+              _buildActionCard(
+                'Price Alerts',
+                Icons.notifications_active_outlined,
+                const Color(0xFFFF9800),
+                () {
+                  // Navigate to alerts
+                },
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 
-  Widget _buildQuickAccessCard(String title, IconData icon, Color color, String route) {
+  Widget _buildActionCard(String title, IconData icon, Color color, VoidCallback onTap) {
     return Card(
       elevation: 2,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+      ),
       child: InkWell(
-        onTap: () {
-          // Navigate to respective screen
-        },
-        child: Padding(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16),
+        child: Container(
           padding: const EdgeInsets.all(16),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(icon, size: 32, color: color),
-              const SizedBox(height: 8),
+              Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  color: color.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(
+                  icon,
+                  color: color,
+                  size: 24,
+                ),
+              ),
+              const SizedBox(height: 12),
               Text(
                 title,
                 textAlign: TextAlign.center,
-                style: const TextStyle(fontWeight: FontWeight.w500),
+                style: TextStyle(
+                  fontWeight: FontWeight.w600,
+                  color: Colors.grey[800],
+                  fontSize: 14,
+                ),
               ),
             ],
           ),
@@ -257,55 +355,191 @@ class _UserDashboardState extends State<UserDashboard> {
   }
 
   Widget _buildRecentPrices() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          'Recent Price Updates',
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-        ),
-        const SizedBox(height: 12),
-        ...recentPrices.map((price) => Card(
-          margin: const EdgeInsets.only(bottom: 8),
-          child: ListTile(
-            leading: CircleAvatar(
-              backgroundColor: Colors.green[100],
-              child: const Icon(Icons.attach_money, color: Colors.green),
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Recent Prices',
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
+              ),
+              TextButton(
+                onPressed: () {
+                  // Navigate to all prices
+                },
+                child: const Text(
+                  'View All',
+                  style: TextStyle(
+                    color: Color(0xFF00C853),
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          if (recentPrices.isEmpty)
+            _buildEmptyState(
+              'No price data available',
+              Icons.price_change_outlined,
+            )
+          else
+            ...recentPrices.map((price) => _buildPriceItem(price)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPriceItem(Map<String, dynamic> price) {
+    return Card(
+      margin: const EdgeInsets.only(bottom: 12),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: ListTile(
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        leading: Container(
+          width: 44,
+          height: 44,
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              colors: [Color(0xFF00C853), Color(0xFF64DD17)],
             ),
-            title: Text(price['markets']?['name'] ?? 'Unknown Market'),
-            subtitle: Text(price['commodities']?['name'] ?? 'Unknown Commodity'),
-            trailing: Text(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: const Icon(
+            Icons.attach_money,
+            color: Colors.white,
+            size: 20,
+          ),
+        ),
+        title: Text(
+          price['markets']?['name'] ?? 'Unknown Market',
+          style: const TextStyle(
+            fontWeight: FontWeight.w600,
+            fontSize: 16,
+          ),
+        ),
+        subtitle: Text(
+          price['commodities']?['name'] ?? 'Unknown Commodity',
+          style: TextStyle(
+            color: Colors.grey[600],
+            fontSize: 14,
+          ),
+        ),
+        trailing: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            Text(
               '₦${(price['price'] as num?)?.toStringAsFixed(0) ?? '0'}',
               style: const TextStyle(
-                fontWeight: FontWeight.bold,
-                color: Colors.green,
+                fontWeight: FontWeight.w700,
+                fontSize: 16,
+                color: Color(0xFF00C853),
               ),
             ),
-          ),
-        )),
-      ],
+            Text(
+              'per bag',
+              style: TextStyle(
+                fontSize: 12,
+                color: Colors.grey[500],
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
   Widget _buildPopularCommodities() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          'Popular Commodities',
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-        ),
-        const SizedBox(height: 12),
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: popularCommodities.map((commodity) => Chip(
-            label: Text(commodity['name']),
-            backgroundColor: Colors.blue[50],
-            avatar: const Icon(Icons.shopping_basket, size: 16),
-          )).toList(),
-        ),
-      ],
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Popular Commodities',
+            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.w700,
+                ),
+          ),
+          const SizedBox(height: 16),
+          if (popularCommodities.isEmpty)
+            _buildEmptyState(
+              'No commodities available',
+              Icons.shopping_basket_outlined,
+            )
+          else
+            Wrap(
+              spacing: 12,
+              runSpacing: 12,
+              children: popularCommodities.map((commodity) => Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF00C853).withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                    color: const Color(0xFF00C853).withOpacity(0.2),
+                  ),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(
+                      Icons.shopping_basket_outlined,
+                      size: 16,
+                      color: Color(0xFF00C853),
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      commodity['name'],
+                      style: const TextStyle(
+                        color: Color(0xFF00C853),
+                        fontWeight: FontWeight.w600,
+                        fontSize: 14,
+                      ),
+                    ),
+                  ],
+                ),
+              )).toList(),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEmptyState(String message, IconData icon) {
+    return Container(
+      padding: const EdgeInsets.all(32),
+      decoration: BoxDecoration(
+        color: Colors.grey[50],
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Column(
+        children: [
+          Icon(
+            icon,
+            size: 48,
+            color: Colors.grey[400],
+          ),
+          const SizedBox(height: 16),
+          Text(
+            message,
+            style: TextStyle(
+              color: Colors.grey[600],
+              fontSize: 16,
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
     );
   }
 }
