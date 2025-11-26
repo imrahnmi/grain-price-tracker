@@ -146,7 +146,8 @@ class _CompareScreenState extends State<CompareScreen> {
                       itemCount: comparisonData.length,
                       itemBuilder: (context, index) {
                         final data = comparisonData[index];
-                        final marketName = data['markets']?['name'] ?? 'Unknown Market';
+                        final market = data['markets'] as Map<String, dynamic>?;
+                        final marketName = market?['name']?.toString() ?? 'Unknown Market';
                         final price = (data['price'] as num?)?.toDouble() ?? 0.0;
                         final quality = data['quality_grade'] ?? 'N/A';
 

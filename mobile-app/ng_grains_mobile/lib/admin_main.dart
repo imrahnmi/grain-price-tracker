@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'screens/admin/admin_dashboard.dart';
 import 'services/auth_service.dart';
+import 'screens/admin/admin_login_screen.dart';
+import 'screens/auth/wrong_user_type_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();

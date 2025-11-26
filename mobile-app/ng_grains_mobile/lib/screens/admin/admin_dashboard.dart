@@ -280,6 +280,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
   Future<void> _signOut() async {
   await AuthService.signOut();
   if (mounted) {
-    Navigator.pushReplacementNamed(context, '/login');}
+    Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
   }
+}
 }

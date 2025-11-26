@@ -33,17 +33,18 @@ class ApiService {
     try {
       final response = await supabase
           .from('price_entries')
-          .select('''
-            *,
-            markets (name),
-            commodities (name)
-          ''')
+          .select('''...''')
           .eq('commodity_id', commodityId)
           .order('created_at', ascending: false);
+
+      if (response.isEmpty) {
+        throw Exception('No price data available');
+      }
+
       return List<Map<String, dynamic>>.from(response);
     } catch (e) {
       print('Error fetching commodity prices: $e');
-      return [];
+      throw Exception('Failed to load prices: ${e.toString()}');
     }
   }
 
@@ -51,7 +52,7 @@ class ApiService {
     try {
       // Get prices from the last 24 hours
       final oneDayAgo = DateTime.now().subtract(const Duration(days: 1)).toIso8601String();
-      
+
       final response = await supabase
           .from('price_entries')
           .select('''
@@ -63,6 +64,7 @@ class ApiService {
           .eq('commodity_id', commodityId)
           .gte('created_at', oneDayAgo)
           .order('price', ascending: true);
+
       return List<Map<String, dynamic>>.from(response);
     } catch (e) {
       print('Error comparing prices: $e');

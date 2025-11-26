@@ -2,14 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../services/auth_service.dart';
 
-class ValidatorLoginScreen extends StatefulWidget {
-  const ValidatorLoginScreen({super.key});
+class AdminLoginScreen extends StatefulWidget {
+  const AdminLoginScreen({super.key});
 
   @override
-  State<ValidatorLoginScreen> createState() => _ValidatorLoginScreenState();
+  State<AdminLoginScreen> createState() => _AdminLoginScreenState();
 }
 
-class _ValidatorLoginScreenState extends State<ValidatorLoginScreen> {
+class _AdminLoginScreenState extends State<AdminLoginScreen> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
@@ -25,15 +25,15 @@ class _ValidatorLoginScreenState extends State<ValidatorLoginScreen> {
           password: _passwordController.text,
         );
 
-        // Verify user is a validator
+        // Verify user is an admin
         final profile = await AuthService.getProfile();
-        if (profile?['user_type'] != 'validator') {
+        if (profile?['user_type'] != 'admin') {
           await AuthService.signOut();
-          _showErrorDialog('This app is for validators only. Please use the main app.');
+          _showErrorDialog('This app is for administrators only.');
           return;
         }
 
-        // Success - validator logged in
+        // Success - admin logged in
       } on AuthException catch (e) {
         _showErrorDialog(e.message);
       } catch (e) {
@@ -63,7 +63,7 @@ class _ValidatorLoginScreenState extends State<ValidatorLoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.orange[50],
+      backgroundColor: Colors.red[50],
       body: Center(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24),
@@ -77,26 +77,26 @@ class _ValidatorLoginScreenState extends State<ValidatorLoginScreen> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    // Validator Icon
+                    // Admin Icon
                     const Icon(
-                      Icons.verified_user,
+                      Icons.admin_panel_settings,
                       size: 64,
-                      color: Colors.orange,
+                      color: Colors.red,
                     ),
                     const SizedBox(height: 16),
                     
                     // Title
                     const Text(
-                      'Validator Portal',
+                      'Admin Dashboard',
                       style: TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.bold,
-                        color: Colors.orange,
+                        color: Colors.red,
                       ),
                     ),
                     const SizedBox(height: 8),
                     const Text(
-                      'Sign in to submit market prices',
+                      'Sign in to manage the system',
                       style: TextStyle(color: Colors.grey),
                     ),
                     const SizedBox(height: 32),
@@ -105,7 +105,7 @@ class _ValidatorLoginScreenState extends State<ValidatorLoginScreen> {
                     TextFormField(
                       controller: _emailController,
                       decoration: const InputDecoration(
-                        labelText: 'Validator Email',
+                        labelText: 'Admin Email',
                         prefixIcon: Icon(Icons.email),
                         border: OutlineInputBorder(),
                       ),
@@ -145,31 +145,31 @@ class _ValidatorLoginScreenState extends State<ValidatorLoginScreen> {
                           : ElevatedButton(
                               onPressed: _login,
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.orange,
+                                backgroundColor: Colors.red,
                                 foregroundColor: Colors.white,
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                               ),
-                              child: const Text('Sign In as Validator'),
+                              child: const Text('Sign In as Admin'),
                             ),
                     ),
                     const SizedBox(height: 16),
 
                     // Demo Account
                     Card(
-                      color: Colors.orange[100],
+                      color: Colors.red[100],
                       child: const Padding(
                         padding: EdgeInsets.all(12),
                         child: Column(
                           children: [
                             Text(
-                              'Demo Validator:',
+                              'Demo Admin:',
                               style: TextStyle(fontWeight: FontWeight.bold),
                             ),
                             SizedBox(height: 8),
-                            Text('validator@da6emarket.com'),
-                            Text('Password: validator123'),
+                            Text('admin@grainprices.com'),
+                            Text('Password: admin123'),
                           ],
                         ),
                       ),
