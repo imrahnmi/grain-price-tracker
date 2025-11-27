@@ -21,15 +21,20 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
   Future<void> _loadUserProfile() async {
     try {
       final profile = await AuthService.getProfile();
-      setState(() {
-        _userProfile = profile;
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _userProfile = profile;
+          _isLoading = false;
+        });
+      }
     } catch (e) {
       debugPrint('Error loading profile: $e');
-      setState(() => _isLoading = false);
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
     }
   }
+
 
   Future<void> _signOut() async {
     await AuthService.signOut();
@@ -85,8 +90,9 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                           colors: [Color(0xFF9C27B0), Color(0xFFE1BEE7)],
                         ),
                       ),
-                      child: Padding(
-                        padding: const EdgeInsets.all(24.0),
+                      padding: const EdgeInsets.all(24.0),
+                      // FIX: SingleChildScrollView absorbs potential overflow in the header
+                      child: SingleChildScrollView( 
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.end,
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -234,38 +240,44 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
             ),
           ),
           const SizedBox(height: 16),
-          GridView.count(
-            crossAxisCount: 2,
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            crossAxisSpacing: 16,
-            mainAxisSpacing: 16,
-            children: [
-              _buildActionCard(
-                'Edit Profile',
-                Icons.edit_outlined,
-                const Color(0xFF2196F3),
-                _showEditProfile,
-              ),
-              _buildActionCard(
-                'Settings',
-                Icons.settings_outlined,
-                const Color(0xFFFF9800),
-                _showSettings,
-              ),
-              _buildActionCard(
-                'Help & Support',
-                Icons.help_outline,
-                const Color(0xFF00C853),
-                _showHelpSupport,
-              ),
-              _buildActionCard(
-                'About App',
-                Icons.info_outline,
-                const Color(0xFF9C27B0),
-                _showAboutApp,
-              ),
-            ],
+          SizedBox(
+            // FIX: Constrain height to prevent oversized cards
+            height: 200, 
+            child: GridView.count(
+              crossAxisCount: 2,
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              crossAxisSpacing: 16,
+              mainAxisSpacing: 16,
+              // FIX: Use a wider aspect ratio to control card height
+              childAspectRatio: 1.8,
+              children: [
+                _buildActionCard(
+                  'Edit Profile',
+                  Icons.edit_outlined,
+                  const Color(0xFF2196F3),
+                  _showEditProfile,
+                ),
+                _buildActionCard(
+                  'Settings',
+                  Icons.settings_outlined,
+                  const Color(0xFFFF9800),
+                  _showSettings,
+                ),
+                _buildActionCard(
+                  'Help & Support',
+                  Icons.help_outline,
+                  const Color(0xFF00C853),
+                  _showHelpSupport,
+                ),
+                _buildActionCard(
+                  'About App',
+                  Icons.info_outline,
+                  const Color(0xFF9C27B0),
+                  _showAboutApp,
+                ),
+              ],
+            ),
           ),
         ],
       ),
@@ -282,13 +294,13 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
         onTap: onTap,
         borderRadius: BorderRadius.circular(16),
         child: Container(
-          padding: const EdgeInsets.all(20),
+          padding: const EdgeInsets.all(16), // Adjusted padding
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Container(
-                width: 48,
-                height: 48,
+                width: 44, // Reduced icon container size
+                height: 44, // Reduced icon container size
                 decoration: BoxDecoration(
                   color: color.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(12),
@@ -296,17 +308,17 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                 child: Icon(
                   icon,
                   color: color,
-                  size: 24,
+                  size: 22, // Reduced icon size
                 ),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 10), // Reduced spacing
               Text(
                 title,
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontWeight: FontWeight.w600,
                   color: Colors.grey[800],
-                  fontSize: 14,
+                  fontSize: 13, // Reduced font size
                 ),
               ),
             ],
@@ -342,9 +354,9 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                 children: [
                   _buildInfoItem('App Version', '1.0.0', Icons.info_outline),
                   const Divider(),
-                  _buildInfoItem('Build Number', '2024.1.0', Icons.build_outlined),
+                  _buildInfoItem('Build Number', '2025.1.0', Icons.build_outlined),
                   const Divider(),
-                  _buildInfoItem('Last Updated', 'Nov 2024', Icons.update_outlined),
+                  _buildInfoItem('Last Updated', 'Nov 2025', Icons.update_outlined),
                 ],
               ),
             ),
@@ -413,4 +425,4 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
       ),
     );
   }
-}
+} 

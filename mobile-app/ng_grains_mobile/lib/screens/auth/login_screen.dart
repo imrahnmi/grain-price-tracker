@@ -1,3 +1,5 @@
+// ignore_for_file: deprecated_member_use
+
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../services/auth_service.dart';
@@ -276,7 +278,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             child: Divider(color: Colors.grey[300]),
                           ),
                           Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 16),
+                            padding: const EdgeInsets.symmetric(horizontal: 12.0),
                             child: Text(
                               'or',
                               style: TextStyle(
@@ -289,36 +291,6 @@ class _LoginScreenState extends State<LoginScreen> {
                             child: Divider(color: Colors.grey[300]),
                           ),
                         ],
-                      ),
-
-                      const SizedBox(height: 24),
-
-                      // Demo Accounts
-                      Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: Colors.grey[50],
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text(
-                              'Demo Accounts:',
-                              style: TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.grey,
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            _buildDemoAccount('Admin', 'admin@grainprices.com', 'admin123'),
-                            const SizedBox(height: 8),
-                            _buildDemoAccount('Validator', 'validator@da6emarket.com', 'validator123'),
-                            const SizedBox(height: 8),
-                            _buildDemoAccount('User', 'user@example.com', 'user123'),
-                          ],
-                        ),
                       ),
 
                       const SizedBox(height: 24),
@@ -357,61 +329,7 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  Widget _buildDemoAccount(String role, String email, String password) {
-    return GestureDetector(
-      onTap: () {
-        _emailController.text = email;
-        _passwordController.text = password;
-      },
-      child: Container(
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: Colors.grey[200]!),
-        ),
-        child: Row(
-          children: [
-            Container(
-              width: 8,
-              height: 8,
-              decoration: const BoxDecoration(
-                color: Color(0xFF00C853),
-                shape: BoxShape.circle,
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    role,
-                    style: const TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  Text(
-                    email,
-                    style: TextStyle(
-                      fontSize: 10,
-                      color: Colors.grey[600],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            Icon(
-              Icons.copy_outlined,
-              size: 16,
-              color: Colors.grey[400],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+  // Removed unused demo account builder to resolve unused declaration warning.
 
   @override
   void dispose() {

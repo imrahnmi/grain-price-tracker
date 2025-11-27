@@ -2,10 +2,9 @@ import 'package:flutter/material.dart';
 import 'prices_screen.dart';
 import 'compare_screen.dart';
 import 'markets_screen.dart';
-import 'trends_screen.dart';
-import 'favorites_screen.dart';
 import '../services/api_service.dart';
-
+import '../screens/user/user_profile_screen.dart';
+import '../screens/ai/ai_insights_screen.dart';
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -27,13 +26,17 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> loadRecentPrices() async {
     try {
       final prices = await ApiService.getCommodityPrices(1);
-      setState(() {
-        recentPrices = prices.take(3).toList();
-        isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          recentPrices = prices.take(3).toList();
+          isLoading = false;
+        });
+      }
     } catch (e) {
       print('Error loading recent prices: $e');
-      setState(() => isLoading = false);
+      if (mounted) {
+        setState(() => isLoading = false);
+      }
     }
   }
 
@@ -43,8 +46,8 @@ class _HomeScreenState extends State<HomeScreen> {
     const PricesScreen(),
     const CompareScreen(),
     const MarketsScreen(),    // Markets should come before Trends
-    const TrendsScreen(),     // Trends moved to position 4
-    const FavoritesScreen(),  // Favorites stays at position 5
+    const AIInsightsScreen(),
+    const UserProfileScreen(),  // Favorites stays at position 5
   ];
 
   @override
@@ -94,11 +97,11 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         BottomNavigationBarItem(
           icon: Icon(Icons.trending_up),  // Trends icon
-          label: 'Trends',                // Trends label
+          label: 'AI',                // Trends label
         ),
         BottomNavigationBarItem(
-          icon: Icon(Icons.favorite),     // Favorites icon
-          label: 'Favorites',             // Favorites label
+          icon: Icon(Icons.person),     // profile 
+          label: 'Profile',             // Favorites label
         ),
       ],
     );
@@ -149,7 +152,7 @@ class __DashboardScreenState extends State<_DashboardScreen> {
             gradient: const LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
-              colors: [Color(0xFF2E7D32), Color(0xFF4CAF50)],
+              colors: [Color(0xFFD4AF37), Color(0xFFFFD700)],
             ),
             borderRadius: BorderRadius.circular(16),
           ),

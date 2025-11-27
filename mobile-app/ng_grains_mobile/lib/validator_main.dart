@@ -21,11 +21,18 @@ class ValidatorApp extends StatelessWidget {
     return MaterialApp(
       title: 'Grain Price Tracker - Validator',
       theme: ThemeData(
-        primaryColor: Colors.orange, // Validator theme
-        primarySwatch: Colors.orange,
-        scaffoldBackgroundColor: const Color(0xFFF5F5F5),
+        useMaterial3: true,
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: const Color(0xFF228B22), // Forest Green for Validator (Foliage)
+          brightness: Brightness.light,
+          primary: const Color(0xFF228B22),     // Forest Green
+          secondary: const Color(0xFFD4AF37),   // Gold accent
+          tertiary: const Color(0xFF008080),    // Teal
+          background: const Color(0xFFF8F9FA),
+        ),
+        scaffoldBackgroundColor: const Color(0xFFF8F9FA),
         appBarTheme: const AppBarTheme(
-          backgroundColor: Colors.orange,
+          backgroundColor: Color(0xFF228B22), // Forest Green
           elevation: 2,
           titleTextStyle: TextStyle(
             color: Colors.white,
@@ -39,7 +46,6 @@ class ValidatorApp extends StatelessWidget {
     );
   }
 }
-
 class ValidatorAuthWrapper extends StatefulWidget {
   const ValidatorAuthWrapper({super.key});
 

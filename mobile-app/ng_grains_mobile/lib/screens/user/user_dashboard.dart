@@ -264,46 +264,52 @@ class _UserDashboardState extends State<UserDashboard> {
                 ),
           ),
           const SizedBox(height: 16),
-          GridView.count(
-            crossAxisCount: 2,
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            crossAxisSpacing: 12,
-            mainAxisSpacing: 12,
-            children: [
-              _buildActionCard(
-                'Price Comparison',
-                Icons.analytics_outlined,
-                const Color(0xFF536DFE),
-                () {
-                  // Navigate to compare
-                },
-              ),
-              _buildActionCard(
-                'Market Prices',
-                Icons.store_mall_directory_outlined,
-                const Color(0xFF00C853),
-                () {
-                  // Navigate to markets
-                },
-              ),
-              _buildActionCard(
-                'AI Predictions',
-                Icons.auto_awesome_mosaic_outlined,
-                const Color(0xFF9C27B0),
-                () {
-                  // Navigate to AI insights
-                },
-              ),
-              _buildActionCard(
-                'Price Alerts',
-                Icons.notifications_active_outlined,
-                const Color(0xFFFF9800),
-                () {
-                  // Navigate to alerts
-                },
-              ),
-            ],
+          SizedBox(
+            // FIX: Constraint height to prevent oversized cards
+            height: 200, 
+            child: GridView.count(
+              crossAxisCount: 2,
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              crossAxisSpacing: 12,
+              mainAxisSpacing: 12,
+              // FIX: Use a wider aspect ratio to control card height
+              childAspectRatio: 1.8,
+              children: [
+                _buildActionCard(
+                  'Price Comparison',
+                  Icons.analytics_outlined,
+                  const Color(0xFF536DFE),
+                  () {
+                    // Navigate to compare
+                  },
+                ),
+                _buildActionCard(
+                  'Market Prices',
+                  Icons.store_mall_directory_outlined,
+                  const Color(0xFF00C853),
+                  () {
+                    // Navigate to markets
+                  },
+                ),
+                _buildActionCard(
+                  'AI Predictions',
+                  Icons.auto_awesome_mosaic_outlined,
+                  const Color(0xFF9C27B0),
+                  () {
+                    // Navigate to AI insights
+                  },
+                ),
+                _buildActionCard(
+                  'Price Alerts',
+                  Icons.notifications_active_outlined,
+                  const Color(0xFFFF9800),
+                  () {
+                    // Navigate to alerts
+                  },
+                ),
+              ],
+            ),
           ),
         ],
       ),
@@ -325,8 +331,8 @@ class _UserDashboardState extends State<UserDashboard> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Container(
-                width: 48,
-                height: 48,
+                width: 44, // Slightly reduced icon container size
+                height: 44, // Slightly reduced icon container size
                 decoration: BoxDecoration(
                   color: color.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(12),
@@ -334,17 +340,17 @@ class _UserDashboardState extends State<UserDashboard> {
                 child: Icon(
                   icon,
                   color: color,
-                  size: 24,
+                  size: 22, // Slightly reduced icon size
                 ),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 10),
               Text(
                 title,
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontWeight: FontWeight.w600,
                   color: Colors.grey[800],
-                  fontSize: 14,
+                  fontSize: 13, // Slightly reduced font size
                 ),
               ),
             ],
@@ -390,7 +396,14 @@ class _UserDashboardState extends State<UserDashboard> {
               Icons.price_change_outlined,
             )
           else
-            ...recentPrices.map((price) => _buildPriceItem(price)),
+            SizedBox(
+              height: 300, // Add fixed height
+              child: SingleChildScrollView(
+                child: Column(
+                  children: recentPrices.map((price) => _buildPriceItem(price)).toList(),
+                ),
+              ),
+            ),
         ],
       ),
     );

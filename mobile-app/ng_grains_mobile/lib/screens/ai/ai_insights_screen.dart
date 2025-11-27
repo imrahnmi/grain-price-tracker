@@ -104,7 +104,7 @@ class _AIInsightsScreenState extends State<AIInsightsScreen> {
                   gradient: LinearGradient(
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
-                    colors: [Color(0xFF9C27B0), Color(0xFFE1BEE7)],
+                    colors: [Color(0xFFD4AF37), Color(0xFF228B22)], // Gold to Forest Green
                   ),
                 ),
                 child: Padding(

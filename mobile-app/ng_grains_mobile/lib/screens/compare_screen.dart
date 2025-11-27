@@ -27,17 +27,21 @@ class _CompareScreenState extends State<CompareScreen> {
   Future<void> loadCommodities() async {
     try {
       final data = await ApiService.getCommodities();
-      setState(() {
-        commodities = data;
-        if (commodities.isNotEmpty) {
-          selectedCommodityId = commodities[0]['id'];
-        }
-      });
+      if (mounted) {
+        setState(() {
+          commodities = data;
+          if (commodities.isNotEmpty) {
+            selectedCommodityId = commodities[0]['id'];
+          }
+        });
+      }      
     } catch (e) {
       debugPrint('Error loading commodities: $e');
-      setState(() {
-        errorMessage = 'Failed to load commodities';
-      });
+      if (mounted) {
+        setState(() {
+          errorMessage = 'Failed to load commodities';
+        });
+      }
     }
   }
 
@@ -51,16 +55,20 @@ class _CompareScreenState extends State<CompareScreen> {
 
     try {
       final data = await ApiService.comparePrices(selectedCommodityId!);
-      setState(() {
-        comparisonData = data;
-        isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          comparisonData = data;
+          isLoading = false;
+        });
+      }
     } catch (e) {
       debugPrint('Error comparing prices: $e');
-      setState(() {
-        isLoading = false;
-        errorMessage = 'Failed to load price comparison data';
-      });
+      if (mounted) { // FIX: Added mounted check
+        setState(() {
+          isLoading = false;
+          errorMessage = 'Failed to load price comparison data';
+        });
+      }
     }
   }
 
@@ -78,7 +86,7 @@ class _CompareScreenState extends State<CompareScreen> {
               gradient: LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
-                colors: [Color(0xFF228B22), Color(0xFF32CD32)],
+                colors: [Color(0xFF228B22), Color(0xFF32CD32)], // Forest Green to Lime
               ),
               borderRadius: BorderRadius.only(
                 bottomLeft: Radius.circular(24),
@@ -177,7 +185,7 @@ class _CompareScreenState extends State<CompareScreen> {
                       ),
                     ),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF536DFE),
+                      backgroundColor: const Color(0xFF008080), // Teal for charts
                       foregroundColor: Colors.white,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
@@ -246,9 +254,15 @@ class _CompareScreenState extends State<CompareScreen> {
                 ? _buildLoadingState()
                 : comparisonData.isEmpty
                     ? _buildEmptyState()
-                    : _selectedView == 'chart'
-                        ? _buildChartView()
-                        : _buildListView(),
+                    : SingleChildScrollView( // FIX: Wrap results in SingleChildScrollView to prevent overflow
+                        padding: EdgeInsets.zero,
+                        child: Column(
+                          children: [
+                            if (_selectedView == 'chart') _buildChartView(),
+                            if (_selectedView == 'list') _buildListView(),
+                          ],
+                        ),
+                      ),
           ),
         ],
       ),
@@ -267,10 +281,10 @@ class _CompareScreenState extends State<CompareScreen> {
             borderRadius: BorderRadius.circular(8),
             boxShadow: isSelected
                 ? [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.1),
+                    const BoxShadow(
+                      color: Color(0x1A000000),
                       blurRadius: 8,
-                      offset: const Offset(0, 2),
+                      offset: Offset(0, 2),
                     ),
                   ]
                 : null,
@@ -380,7 +394,8 @@ class _CompareScreenState extends State<CompareScreen> {
       child: Column(
         children: [
           // Chart
-          Expanded(
+          SizedBox( // FIX: Replaced Expanded with SizedBox to prevent vertical overflow
+            height: 350, // Fixed height for chart area
             child: SfCartesianChart(
               title: const ChartTitle(
                 text: 'Price Comparison (₦ per bag)',
@@ -584,7 +599,12 @@ class _CompareScreenState extends State<CompareScreen> {
   }
 
   Widget _buildListView() {
+    // FIX: ListView.builder inherently handles scrolling, but since it's nested
+    // inside the SingleChildScrollView in the main build, we rely on the
+    // SingleChildScrollView for scrolling and adjust the ListView's properties.
     return ListView.builder(
+      shrinkWrap: true, // Required when nested inside SingleChildScrollView
+      physics: const NeverScrollableScrollPhysics(), // Disable inner scrolling
       padding: const EdgeInsets.all(16),
       itemCount: comparisonData.length,
       itemBuilder: (context, index) {

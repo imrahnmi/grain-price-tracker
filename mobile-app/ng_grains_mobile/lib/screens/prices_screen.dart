@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 // import 'package:flutter_spinkit/flutter_spinkit.dart';
 import '../services/api_service.dart';
-import '../services/favorites_service.dart';
+// import '../services/favorites_service.dart';
 
 class PricesScreen extends StatefulWidget {
   const PricesScreen({super.key});
@@ -27,15 +27,17 @@ class _PricesScreenState extends State<PricesScreen> {
   Future<void> loadData() async {
     try {
       final commoditiesData = await ApiService.getCommodities();
-      setState(() {
-        commodities = commoditiesData;
-        if (commodities.isNotEmpty) {
-          selectedCommodityId = commodities[0]['id'];
-          loadPrices(commodities[0]['id']);
-        } else {
-          isLoading = false;
-        }
-      });
+      if (mounted) {
+        setState(() {
+          commodities = commoditiesData;
+          if (commodities.isNotEmpty) {
+            selectedCommodityId = commodities[0]['id'];
+            loadPrices(commodities[0]['id']);
+          } else {
+            isLoading = false;
+          }
+        });
+      }
     } catch (e) {
       debugPrint('Error loading data: $e');
       setState(() => isLoading = false);
@@ -50,14 +52,18 @@ class _PricesScreenState extends State<PricesScreen> {
 
     try {
       final pricesData = await ApiService.getCommodityPrices(commodityId);
+      if (mounted) {
       setState(() {
         allPrices = pricesData;
         filteredPrices = pricesData;
         isLoading = false;
       });
+      }
     } catch (e) {
       debugPrint('Error loading prices: $e');
-      setState(() => isLoading = false);
+      if (mounted) {
+        setState(() => isLoading = false);
+      }
     }
   }
 
@@ -101,7 +107,7 @@ class _PricesScreenState extends State<PricesScreen> {
               gradient: LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
-                colors: [Color(0xFF00C853), Color(0xFF64DD17)],
+                colors: [Color(0xFFD4AF37), Color(0xFFFFD700)],
               ),
               borderRadius: BorderRadius.only(
                 bottomLeft: Radius.circular(24),
@@ -323,28 +329,6 @@ class ModernPriceCard extends StatefulWidget {
 }
 
 class _ModernPriceCardState extends State<ModernPriceCard> {
-  bool isFavorite = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _checkFavoriteStatus();
-  }
-
-  void _checkFavoriteStatus() async {
-    final favorite = await FavoritesService.isFavorite(widget.marketName, widget.commodityName);
-    setState(() => isFavorite = favorite);
-  }
-
-  void _toggleFavorite() async {
-    if (isFavorite) {
-      await FavoritesService.removeFavorite(widget.marketName, widget.commodityName);
-    } else {
-      await FavoritesService.addFavorite(widget.marketName, widget.commodityName);
-    }
-    setState(() => isFavorite = !isFavorite);
-  }
-
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -434,7 +418,7 @@ class _ModernPriceCardState extends State<ModernPriceCard> {
                 ),
               ),
               
-              // Price & Favorite
+              // Price (favorites removed)
               Column(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
@@ -452,22 +436,6 @@ class _ModernPriceCardState extends State<ModernPriceCard> {
                     style: TextStyle(
                       fontSize: 12,
                       color: Colors.grey[500],
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  GestureDetector(
-                    onTap: _toggleFavorite,
-                    child: Container(
-                      padding: const EdgeInsets.all(6),
-                      decoration: BoxDecoration(
-                        color: isFavorite ? Colors.red.withOpacity(0.1) : Colors.grey.withOpacity(0.1),
-                        shape: BoxShape.circle,
-                      ),
-                      child: Icon(
-                        isFavorite ? Icons.favorite : Icons.favorite_border,
-                        color: isFavorite ? Colors.red : Colors.grey,
-                        size: 18,
-                      ),
                     ),
                   ),
                 ],

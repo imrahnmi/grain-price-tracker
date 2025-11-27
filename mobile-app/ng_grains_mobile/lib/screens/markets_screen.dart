@@ -21,10 +21,12 @@ class _MarketsScreenState extends State<MarketsScreen> {
   Future<void> loadMarkets() async {
     try {
       final data = await ApiService.getMarkets();
-      setState(() {
-        markets = data;
-        isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          markets = data;
+          isLoading = false;
+        });
+      }
     } catch (e) {
       debugPrint('Error loading markets: $e');
       setState(() => isLoading = false);
@@ -45,7 +47,7 @@ class _MarketsScreenState extends State<MarketsScreen> {
               gradient: LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
-                colors: [Color(0xFFFF9800), Color(0xFFFFB74D)],
+                colors: [Color(0xFF008080), Color(0xFF20B2AA)], // Teal to Light Sea Green
               ),
               borderRadius: BorderRadius.only(
                 bottomLeft: Radius.circular(24),
@@ -65,7 +67,7 @@ class _MarketsScreenState extends State<MarketsScreen> {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'Explore grain markets in Bauchi',
+                  'Explore grain markets in Nigeria',
                   style: TextStyle(
                     color: Colors.white.withOpacity(0.9),
                     fontSize: 16,
